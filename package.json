@@ -1,0 +1,34 @@
+{
+  "name": "pi-tiny-monitor-sub",
+  "version": "0.1.0",
+  "description": "Parent-linked child Pi sessions for pi-tiny-monitor",
+  "type": "module",
+  "keywords": ["pi-package"],
+  "license": "MIT",
+  "files": ["README.md", "src", "bin", "skills"],
+  "bin": {
+    "pi-sub": "./bin/pi-sub"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spoj/pi-tiny-monitor-sub.git"
+  },
+  "pi": {
+    "extensions": ["./src/index.ts"],
+    "skills": ["./skills"]
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^1.0.1",
+    "@types/node": "^22.19.19",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.9"
+  }
+}
