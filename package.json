@@ -6,9 +6,6 @@
   "keywords": ["pi-package"],
   "license": "MIT",
   "files": ["README.md", "src", "bin", "skills"],
-  "bin": {
-    "pi-sub": "./bin/pi-sub"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/spoj/pi-tiny-monitor-sub.git"

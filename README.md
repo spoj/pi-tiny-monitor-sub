@@ -10,9 +10,9 @@ pi-sub -p "Review src/ for correctness bugs. Report findings with file paths."
 
 Run it through `monitor` to keep the parent turn available; the child's final answer arrives as monitor output. The bundled `pi-sub` skill tells the model how to delegate this way.
 
-`pi-sub` writes the child's session header beside the parent session, then runs `pi --session FILE`. Outside a Pi session it runs plain `pi`. It is a POSIX shell script and needs `uuidgen`.
+`pi-sub` writes the child's session header beside the parent session, then runs Pi with `--session FILE`. Outside a Pi session it runs plain `pi`. It is a Node script with `sh` and `.cmd` wrappers, so it works from Unix shells, Git Bash, and PowerShell.
 
-At session start the extension puts `bin/` on Pi's `PATH` and exports the session file as `PI_SESSION_FILE`, as Pi's bash tool does for its own commands. Commands started by `monitor` inherit both. Session shutdown restores the previous values.
+At session start the extension puts `bin/` on Pi's `PATH`, exports the session file as `PI_SESSION_FILE` as Pi's bash tool does for its own commands, and exports the command that launched Pi as `PI_SUB_COMMAND`. The child runs that same Pi directly; on Windows `pi` is a `.cmd` shim that Node cannot spawn without a shell. Commands started by `monitor` inherit all three. Session shutdown restores the previous values.
 
 ## Install
 

@@ -6,7 +6,8 @@ import piTinyMonitorSub from "../src/index.ts";
 
 const bin = fileURLToPath(new URL("../bin", import.meta.url));
 const pathKey = Object.keys(process.env).find((key) => key.toLowerCase() === "path") ?? "PATH";
-const original = { path: process.env[pathKey], session: process.env.PI_SESSION_FILE };
+const keys = [pathKey, "PI_SESSION_FILE", "PI_SUB_COMMAND"];
+const original = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
 
 function setup(sessionFile: string | undefined) {
 	const pi = { on: vi.fn() };
@@ -17,21 +18,25 @@ function setup(sessionFile: string | undefined) {
 }
 
 afterEach(() => {
-	process.env[pathKey] = original.path;
-	if (original.session === undefined) delete process.env.PI_SESSION_FILE;
-	else process.env.PI_SESSION_FILE = original.session;
+	for (const key of keys) {
+		if (original[key] === undefined) delete process.env[key];
+		else process.env[key] = original[key];
+	}
 });
 
 describe("monitor-sub extension", () => {
-	it("exposes pi-sub and the session file to child processes until shutdown", () => {
+	it("exposes pi-sub, the session file, and Pi's launch command to child processes until shutdown", () => {
 		delete process.env.PI_SESSION_FILE;
+		delete process.env.PI_SUB_COMMAND;
 		const session = setup("/tmp/sessions/parent.jsonl");
 		session.start();
-		expect(process.env[pathKey]).toBe(`${bin}${delimiter}${original.path}`);
+		expect(process.env[pathKey]).toBe(`${bin}${delimiter}${original[pathKey]}`);
 		expect(process.env.PI_SESSION_FILE).toBe("/tmp/sessions/parent.jsonl");
+		expect(JSON.parse(process.env.PI_SUB_COMMAND!)).toEqual([process.execPath, ...process.execArgv, process.argv[1]]);
 		session.shutdown();
-		expect(process.env[pathKey]).toBe(original.path);
+		expect(process.env[pathKey]).toBe(original[pathKey]);
 		expect(process.env.PI_SESSION_FILE).toBeUndefined();
+		expect(process.env.PI_SUB_COMMAND).toBeUndefined();
 	});
 
 	it("follows a replacement session", () => {
