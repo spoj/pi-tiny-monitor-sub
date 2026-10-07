@@ -8,9 +8,9 @@ export default function piTinyMonitorSub(pi: ExtensionAPI): void {
 	let restore: (() => void) | undefined;
 
 	pi.on("session_start", (_event, ctx) => {
-		const pathKey = Object.keys(process.env).find((key) => key.toLowerCase() === "path") ?? "PATH";
-		const previous = ["PI_SESSION_FILE", "PI_SUB_COMMAND", pathKey].map((key) => [key, process.env[key]] as const);
-		process.env[pathKey] = `${bin}${delimiter}${process.env[pathKey] ?? ""}`;
+		// Node reads and writes Windows' Path through PATH.
+		const previous = ["PI_SESSION_FILE", "PI_SUB_COMMAND", "PATH"].map((key) => [key, process.env[key]] as const);
+		process.env.PATH = `${bin}${delimiter}${process.env.PATH}`;
 		process.env.PI_SUB_COMMAND = JSON.stringify([process.execPath, ...process.execArgv, process.argv[1]]);
 		// Pi exports the session file only to its own bash tool; monitored commands inherit Pi's environment.
 		const sessionFile = ctx.sessionManager.getSessionFile();

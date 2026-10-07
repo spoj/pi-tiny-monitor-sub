@@ -5,8 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import piTinyMonitorSub from "../src/index.ts";
 
 const bin = fileURLToPath(new URL("../bin", import.meta.url));
-const pathKey = Object.keys(process.env).find((key) => key.toLowerCase() === "path") ?? "PATH";
-const keys = [pathKey, "PI_SESSION_FILE", "PI_SUB_COMMAND"];
+const keys = ["PATH", "PI_SESSION_FILE", "PI_SUB_COMMAND"];
 const original = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
 
 function setup(sessionFile: string | undefined) {
@@ -30,11 +29,11 @@ describe("monitor-sub extension", () => {
 		delete process.env.PI_SUB_COMMAND;
 		const session = setup("/tmp/sessions/parent.jsonl");
 		session.start();
-		expect(process.env[pathKey]).toBe(`${bin}${delimiter}${original[pathKey]}`);
+		expect(process.env.PATH).toBe(`${bin}${delimiter}${original.PATH}`);
 		expect(process.env.PI_SESSION_FILE).toBe("/tmp/sessions/parent.jsonl");
 		expect(JSON.parse(process.env.PI_SUB_COMMAND!)).toEqual([process.execPath, ...process.execArgv, process.argv[1]]);
 		session.shutdown();
-		expect(process.env[pathKey]).toBe(original[pathKey]);
+		expect(process.env.PATH).toBe(original.PATH);
 		expect(process.env.PI_SESSION_FILE).toBeUndefined();
 		expect(process.env.PI_SUB_COMMAND).toBeUndefined();
 	});
@@ -46,7 +45,7 @@ describe("monitor-sub extension", () => {
 		const second = setup("/tmp/sessions/second.jsonl");
 		second.start();
 		expect(process.env.PI_SESSION_FILE).toBe("/tmp/sessions/second.jsonl");
-		expect(process.env[pathKey]?.split(delimiter).filter((entry) => entry === bin)).toHaveLength(1);
+		expect(process.env.PATH?.split(delimiter).filter((entry) => entry === bin)).toHaveLength(1);
 	});
 
 	it("clears an inherited session file when the session is not saved", () => {

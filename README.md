@@ -37,7 +37,7 @@ pi install git:github.com/spoj/pi-tiny-monitor-sub
 Or try it locally:
 
 ```bash
-pi -e ../pi-tiny-monitor/src/index.ts -e ./src/index.ts
+pi -e ../pi-tiny-monitor -e .
 ```
 
 ## Development
