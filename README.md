@@ -2,7 +2,7 @@
 
 A companion to [pi-tiny-monitor](https://github.com/spoj/pi-tiny-monitor) for parent-linked child Pi sessions and the workflows built from them.
 
-It provides `pi-sub`, which accepts any `pi` arguments and records the calling session as the child's `parentSession`, so Pi shows the child under its parent:
+It provides `pi-sub`, which accepts `pi` arguments other than session options, starts a fresh session, and records the calling session as the child's `parentSession`, so Pi shows the child under its parent:
 
 ```bash
 pi-sub -p "Review src/ for correctness bugs. Report findings with file paths."

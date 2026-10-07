@@ -3,7 +3,7 @@ name: pi-sub
 description: Delegate a self-contained task to a child Pi agent. Use when work can proceed in parallel or would flood this context.
 ---
 
-`pi-sub` runs `pi` as a child of this session and accepts any `pi` arguments.
+`pi-sub` runs `pi` in a fresh child session of this one and accepts `pi` arguments other than session options.
 
 - Run it through `monitor`; the child's final answer arrives as monitor output when it exits.
 - The child starts with none of this conversation. Put the goal, relevant paths, constraints, and the expected answer in the task.
