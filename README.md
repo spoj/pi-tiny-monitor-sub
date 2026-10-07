@@ -19,7 +19,7 @@ At session start the extension puts `bin/` on Pi's `PATH`, exports the session f
 The bundled `ultracode` skill runs a large task the way Claude Code's ultracode does. When a request says "ultracode", the model writes an ES module that fans the work out to child agents and has other agents try to refute their results, then runs it through `monitor`:
 
 ```js
-import { agent } from "<package>/skills/ultracode/wf.mjs";
+import { agent } from "file:///…/pi-tiny-monitor-sub/skills/ultracode/wf.mjs";
 
 const files = await agent("List the TypeScript modules under src/.", { json: true });
 const reviews = await Promise.allSettled(files.map((file) => agent(`Review ${file} for correctness bugs.`)));

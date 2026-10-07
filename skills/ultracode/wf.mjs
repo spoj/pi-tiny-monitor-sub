@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -32,27 +32,37 @@ export async function agent(task, { model, tools, json } = {}) {
 			// A finishing agent hands its slot straight to the next waiter, so `active` never exceeds `limit`.
 			if (active < limit) active++;
 			else await new Promise((resolve) => waiting.push(resolve));
-			const startedAt = Date.now();
-			const args = ["-p", ...(model ? ["--model", model] : []), ...(tools ? ["--tools", tools] : []), "--", prompt];
-			const child = spawn(process.execPath, [piSub, ...args], { stdio: ["ignore", "pipe", "pipe"] });
-			let stderr = "";
-			child.stdout.setEncoding("utf8").on("data", (chunk) => (answer += chunk));
-			child.stderr.setEncoding("utf8").on("data", (chunk) => (stderr += chunk));
-			const code = await new Promise((resolve, reject) => child.on("error", reject).on("close", resolve)).finally(() => {
+			try {
+				const startedAt = Date.now();
+				// Pi reads piped stdin as the prompt, which keeps long tasks clear of argv limits.
+				const child = spawn(process.execPath, [piSub, "-p", ...(model ? ["--model", model] : []), ...(tools === undefined ? [] : ["--tools", tools])]);
+				let stderr = "";
+				child.stdout.setEncoding("utf8").on("data", (chunk) => (answer += chunk));
+				child.stderr.setEncoding("utf8").on("data", (chunk) => (stderr += chunk));
+				const code = await new Promise((resolve, reject) => {
+					child.on("error", reject).on("close", resolve);
+					child.stdin.on("error", reject).end(prompt);
+				});
+				if (code !== 0) throw new Error(`exit ${code}: ${stderr.trim().slice(-300)}`);
+				console.log(`#${n} done in ${Math.round((Date.now() - startedAt) / 1000)}s: ${file}`);
+			} finally {
 				const next = waiting.shift();
 				if (next) next();
 				else active--;
-			});
-			if (code !== 0) throw new Error(`exit ${code}: ${stderr.trim().slice(-300)}`);
-			console.log(`#${n} done in ${Math.round((Date.now() - startedAt) / 1000)}s: ${file}`);
+			}
 		}
 		let result = answer.trim();
 		if (json) {
-			const fence = [...answer.matchAll(/```json\s*\n([\s\S]*?)```/g)].at(-1);
+			// JSON strings cannot hold raw newlines, so only line-start fences delimit blocks. The last block must be a complete
+			// JSON block; an earlier one is a draft or an example, and a cut-off final block fails to parse.
+			const fence = answer.match(/^```json\s*\n((?:(?!^```)[\s\S])*)^```(?![\s\S]*^```)/m);
 			result = JSON.parse(fence ? fence[1] : answer);
 		}
-		// Saved only once the answer parses, so a rerun retries failures.
-		if (!cached) writeFileSync(file, answer);
+		// Saved only once the answer parses, so a rerun retries failures; the rename keeps a stopped run from leaving a cut-off file.
+		if (!cached) {
+			writeFileSync(`${file}.tmp`, answer);
+			renameSync(`${file}.tmp`, file);
+		}
 		return result;
 	} catch (error) {
 		console.log(`#${n} failed: ${error.message}`);
