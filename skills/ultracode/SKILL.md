@@ -11,13 +11,7 @@ Import `agent` from the `file://` URL of `wf.mjs` in this skill's directory. `ag
 
 Answers are saved in `out/` beside the script, and rerunning the script there returns the saved answer for each call whose task, model, and tools are unchanged. To resume or adjust a stopped run, edit the script and start it again in the same directory; only new, changed, and failed calls run. Saved answers do not notice changed files, so use a fresh directory when agents must look again.
 
-Shape the script in phases:
-1. Map: enumerate units of work (files, modules, claims, research angles), in code or with one agent returning a JSON list.
-2. Fan out: one agent per unit via `Promise.allSettled`; retry failed units once.
-3. Verify: give each result to a fresh agent, preferably on another model from `enabledModels` in ~/.pi/agent/settings.json, told to refute it with evidence. Keep what survives; send refuted units back to step 2 with the objection, at most two rounds.
-4. Synthesize: print the final result, writing bulky output to files.
+Map the work into units, fan out one agent per unit, have fresh agents try to refute each result, and combine what survives.
 
 - Children start blank: every task states the goal, paths, constraints, and answer format.
-- Parallel writers must own disjoint files and must not commit, whatever their AGENTS.md says; commit yourself after checking.
-- Use a cheaper model or thinking level for mechanical units.
-- Before reporting, check the workflow's claims yourself: run the tests, read `git diff`.
+- Parallel writers must own disjoint files and must not commit, whatever their AGENTS.md says.
