@@ -1,7 +1,7 @@
 {
   "name": "pi-tiny-monitor-sub",
   "version": "0.1.0",
-  "description": "Parent-linked child Pi sessions for pi-tiny-monitor",
+  "description": "Parent-linked child Pi sessions and workflows for pi-tiny-monitor",
   "type": "module",
   "keywords": ["pi-package"],
   "license": "MIT",
