@@ -16,14 +16,13 @@
   },
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm test"
+    "check": "tsc --noEmit && npm test"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "^1.0.1",
+    "@earendil-works/pi-coding-agent": "^1.0.4",
     "@types/node": "^22.19.19",
     "typescript": "^5.9.3",
     "vitest": "^4.1.9"
