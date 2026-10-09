@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
-const wf = pathToFileURL(fileURLToPath(new URL("../skills/ultracode/wf.mjs", import.meta.url))).href;
+const wf = pathToFileURL(fileURLToPath(new URL("../skills/workflow/wf.mjs", import.meta.url))).href;
 // Stands in for Pi: reads the task from stdin, logs it around a short wait, then answers according to its first word.
 const fakePi = `
 import { appendFileSync } from "node:fs";

@@ -16,10 +16,10 @@ At session start the extension puts `bin/` on Pi's `PATH`, exports the session f
 
 ## Workflows
 
-The bundled `ultracode` skill runs a large task the way Claude Code's ultracode does. When a request says "ultracode", the model writes an ES module that fans the work out to child agents and has other agents try to refute their results, then runs it through `monitor`:
+The bundled `workflow` skill follows Claude Code's dynamic workflows: work too big for one context runs as a script that orchestrates child agents. The model writes one only on request, when the user says "ultracode" or asks for a workflow in their own words; "ultracode on" makes that standing for every substantive task until "ultracode off". The script is an ES module that fans the work out and has other agents try to refute the results, and the model runs it through `monitor`:
 
 ```js
-import { agent } from "file:///…/pi-tiny-monitor-sub/skills/ultracode/wf.mjs";
+import { agent } from "file:///…/pi-tiny-monitor-sub/skills/workflow/wf.mjs";
 
 const files = await agent("List the TypeScript modules under src/.", { json: true });
 const reviews = await Promise.allSettled(files.map((file) => agent(`Review ${file} for correctness bugs.`)));
