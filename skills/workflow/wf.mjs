@@ -10,9 +10,15 @@ const cap = Number(process.env.WF_MAX_AGENTS ?? 100);
 const outDir = join(dirname(process.argv[1]), "out");
 mkdirSync(outDir, { recursive: true });
 const copies = new Map();
+const children = new Set();
 const waiting = [];
 let active = 0;
 let started = 0;
+
+for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(signal, () => process.exit(1));
+process.on("exit", () => {
+	for (const child of children) child.kill("SIGTERM");
+});
 
 export async function agent(task, { model, tools, json } = {}) {
 	const n = ++started;
@@ -36,13 +42,14 @@ export async function agent(task, { model, tools, json } = {}) {
 				const startedAt = Date.now();
 				// Pi reads piped stdin as the prompt, which keeps long tasks clear of argv limits.
 				const child = spawn(process.execPath, [piSub, "-p", ...(model ? ["--model", model] : []), ...(tools === undefined ? [] : ["--tools", tools])]);
+				children.add(child);
 				let stderr = "";
 				child.stdout.setEncoding("utf8").on("data", (chunk) => (answer += chunk));
 				child.stderr.setEncoding("utf8").on("data", (chunk) => (stderr += chunk));
 				const code = await new Promise((resolve, reject) => {
 					child.on("error", reject).on("close", resolve);
 					child.stdin.on("error", reject).end(prompt);
-				});
+				}).finally(() => children.delete(child));
 				if (code !== 0) throw new Error(`exit ${code}: ${stderr.trim().slice(-300)}`);
 				console.log(`#${n} done in ${Math.round((Date.now() - startedAt) / 1000)}s: ${file}`);
 			} finally {

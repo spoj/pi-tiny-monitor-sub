@@ -13,7 +13,7 @@ let task = "";
 for await (const chunk of process.stdin) task += chunk;
 const [word] = task.split(/\\s/);
 appendFileSync(process.env.FAKE_LOG, JSON.stringify(["start", process.argv.slice(2), task]) + "\\n");
-await new Promise((resolve) => setTimeout(resolve, 300));
+await new Promise((resolve) => setTimeout(resolve, word === "slow" ? 1000 : 300));
 appendFileSync(process.env.FAKE_LOG, JSON.stringify(["end"]) + "\\n");
 if (word === "fail") {
 	console.error("boom");
@@ -42,7 +42,7 @@ function setup() {
 			writeFileSync(join(directory, "workflow.mjs"), `import { agent } from ${JSON.stringify(wf)};\n${body}`);
 			const childEnv: NodeJS.ProcessEnv = { ...process.env, PI_SUB_COMMAND: JSON.stringify([process.execPath, pi]), FAKE_LOG: log, ...env };
 			delete childEnv.PI_SESSION_FILE;
-			const output = execFileSync(process.execPath, [join(directory, "workflow.mjs")], { cwd: directory, encoding: "utf8", env: childEnv, timeout: 30_000 });
+			const output = execFileSync(process.execPath, [join(directory, "workflow.mjs")], { cwd: directory, encoding: "utf8", env: childEnv, stdio: ["ignore", "pipe", "pipe"], timeout: 30_000 });
 			return JSON.parse(output.trim().split("\n").at(-1)!);
 		},
 		calls,
@@ -94,5 +94,12 @@ describe("wf agent()", () => {
 		expect(tasks()).toEqual(["fail"]);
 		run(body.replace("p/m", "p/n").replace('"read"', '"bash"').replace('agent("task")', 'agent("text")').replace('agent("fail")', 'agent("fail"), agent("new")'));
 		expect(tasks().sort()).toEqual(["fail", "model", "new", "text", "tools"]);
+	});
+
+	it("stops in-flight children when the workflow exits early", async () => {
+		const { run, calls } = setup();
+		expect(() => run(`await Promise.all([agent("fail"), agent("slow")]);`)).toThrow();
+		await new Promise((resolve) => setTimeout(resolve, 900));
+		expect(calls().filter(([event]) => event === "end")).toHaveLength(1);
 	});
 });
