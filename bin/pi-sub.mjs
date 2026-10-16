@@ -19,7 +19,6 @@ if (parent) {
 }
 const child = spawn(command, [...prefix, ...args], { stdio: "inherit" });
 for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(signal, () => child.kill(signal));
-process.on("exit", () => child.kill("SIGTERM"));
 child.on("error", (error) => {
 	console.error(`pi-sub: ${error.message}`);
 	process.exit(1);
