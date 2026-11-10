@@ -38,6 +38,16 @@ describe("monitor-sub extension", () => {
 		expect(process.env.PI_SUB_COMMAND).toBeUndefined();
 	});
 
+	it.each(["/$bunfs/root/pi", "B:/~BUN/root/pi.exe", "B:\\~BUN\\root\\pi.exe"])("launches a Bun-compiled Pi without its embedded entry %s", (entry) => {
+		const script = process.argv[1];
+		process.argv[1] = entry;
+		const session = setup("/tmp/sessions/parent.jsonl");
+		session.start();
+		process.argv[1] = script;
+		expect(JSON.parse(process.env.PI_SUB_COMMAND!)).toEqual([process.execPath, ...process.execArgv]);
+		session.shutdown();
+	});
+
 	it("follows a replacement session", () => {
 		const first = setup("/tmp/sessions/first.jsonl");
 		first.start();

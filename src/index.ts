@@ -11,7 +11,9 @@ export default function piTinyMonitorSub(pi: ExtensionAPI): void {
 		// Node reads and writes Windows' Path through PATH.
 		const previous = ["PI_SESSION_FILE", "PI_SUB_COMMAND", "PATH"].map((key) => [key, process.env[key]] as const);
 		process.env.PATH = `${bin}${delimiter}${process.env.PATH}`;
-		process.env.PI_SUB_COMMAND = JSON.stringify([process.execPath, ...process.execArgv, process.argv[1]]);
+		// A Bun-compiled Pi is its own entry: argv[1] names a file inside the binary, which a child would take for a prompt.
+		const script = /^(\/\$bunfs\/|[A-Za-z]:[\\/]~BUN[\\/])/.test(process.argv[1]) ? [] : [process.argv[1]];
+		process.env.PI_SUB_COMMAND = JSON.stringify([process.execPath, ...process.execArgv, ...script]);
 		// Pi exports the session file only to its own bash tool; monitored commands inherit Pi's environment.
 		const sessionFile = ctx.sessionManager.getSessionFile();
 		if (sessionFile) process.env.PI_SESSION_FILE = sessionFile;
